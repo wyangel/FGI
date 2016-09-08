@@ -183,9 +183,10 @@ public class QuestionUtil {
                 showLayout.addView(rg);
                 break;
             case 2:
-                final ArrayList<String> list = new ArrayList();
-                final ArrayList<CheckBox> listm = new ArrayList();
-                final ArrayList<CheckBox> listn = new ArrayList(); //排他list
+                final ArrayList<String> list = new ArrayList<>();
+                final ArrayList<String> listq = new ArrayList<>();
+                final ArrayList<CheckBox> listm = new ArrayList<>();
+                final ArrayList<CheckBox> listn = new ArrayList<>(); //排他list
                 for (final Answer answer : alist) {
                     final CheckBox cb = new CheckBox(context);
                     cb.setText(answer.getAtitle());
@@ -203,7 +204,6 @@ public class QuestionUtil {
                         @Override
                         public void onCheckedChanged(CompoundButton cbut, boolean b) {
                             if(b){
-                                result.setToqid(Integer.parseInt(cbut.getTag().toString()));
                                 if(answer.getPaita()==1){
                                     for (CheckBox cbox : listm) {
                                         cbox.setTextColor(Color.BLUE);
@@ -211,7 +211,7 @@ public class QuestionUtil {
                                         cbox.setChecked(false);
                                     }
                                     for (CheckBox cbox : listn) {
-                                        if(cbox.getId()!=cbut.getId())cbox.setChecked(false);cbox.setTextColor(Color.BLUE);cbox.setBackgroundResource(R.drawable.corners);
+                                        if(cbox.getId()!=cbut.getId())      cbox.setChecked(false);cbox.setTextColor(Color.BLUE);cbox.setBackgroundResource(R.drawable.corners);
                                     }
                                 }else{
                                     for (CheckBox cbox : listn) {
@@ -221,16 +221,19 @@ public class QuestionUtil {
                                     }
                                 }
                                 list.add(cbut.getId()+"");
+                                listq.add(cbut.getTag().toString());
                                 cbut.setTextColor(Color.WHITE);
                                 cbut.setBackgroundResource(R.drawable.corners_checked);
                             }
                             else{
                                 list.remove(cbut.getId()+"");
+                                listq.remove(cbut.getTag().toString());
                                 cbut.setTextColor(Color.BLUE);
                                 cbut.setBackgroundResource(R.drawable.corners);
                             }
-                            //Log.i(TAG,"makeQuestion:"+list.size());
-
+                            //Log.i(TAG,"listq:"+formatListq(listq));
+                            //Log.i(TAG,"list:"+formatList(list));
+                            result.setToqid(formatListq(listq));
                             result.setValue(formatList(list));
 
                             if(list.size()>amin-1&&list.size()<amax+1){
@@ -293,6 +296,18 @@ public class QuestionUtil {
                 showLayout.addView(et,params);
                 break;
         }
+    }
+
+    public int formatListq(List<String> list) {
+        int toqid=0;
+        for(int i=0 ;i< list.size();i++) {
+           if("0".equals(list.get(i))){
+               list.remove(i);
+           }
+        }
+        //Log.i(TAG,"listq size:"+list.size());
+        if(list.size()>0){     toqid = Integer.parseInt(list.get(0));    }
+        return toqid;
     }
 
     public String formatList(List<?> list) {
