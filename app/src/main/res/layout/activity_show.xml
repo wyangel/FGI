@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="cn.insightsresearch.fgi.ShowActivity"
+    android:background="#cccccc">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/linearLayout">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvPaper"
+            android:singleLine="false"
+            android:gravity="center_vertical"
+            android:textSize="18sp"
+            android:text="Q"
+            android:paddingBottom="6dip"
+            android:paddingLeft="10dip"
+            android:paddingTop="6dip"
+            android:paddingRight="10dip" />
+
+        <cn.insightsresearch.fgi.fragment.SpringProgressView
+            android:id="@+id/spring_progress_view"
+            android:layout_width="fill_parent"
+            android:layout_height="6dip" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/RelativeLayout"
+        android:layout_below="@+id/linearLayout"
+        android:layout_above="@+id/linearLayout2"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg">
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar"
+            android:visibility="visible"
+            android:layout_gravity="center" />
+        <ScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/scrollView"
+            android:layout_gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/showLayout"
+                android:padding="10dip"
+                android:orientation="vertical">
+
+            </LinearLayout>
+        </ScrollView>
+
+    </RelativeLayout>
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:id="@+id/linearLayout2">
+
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonnext"
+            android:id="@+id/button"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:enabled="false"
+            android:gravity="center_vertical|center_horizontal" />
+    </LinearLayout>
+</RelativeLayout>
