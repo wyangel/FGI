@@ -120,11 +120,11 @@ public class QuestionUtil {
         if(qtype<3&&qradom>0) { //随机排序
             final Random random = new Random(System.currentTimeMillis());
             final ArrayList<Answer> klist = new ArrayList<>();
-            int len = alist.size();
-            for(int i=len-qradom; i<len; i++){
-                Answer ans = alist.get(i);
+            int len = alist.size()-qradom;
+            for(int i=len; i<len; i++){
+                Answer ans = alist.get(len);
                 klist.add(ans);
-                alist.remove(i);
+                alist.remove(len);
             }
 
             Collections.sort(alist, new Comparator<Answer>() {

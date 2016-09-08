@@ -170,7 +170,11 @@ public class ResultDetailActivity extends AppCompatActivity {
             viewHolder.content.setText(Html.fromHtml(content));
             viewHolder.id.setText(question.getId()+"");
             viewHolder.num.setText((i+1)+"");
-            viewHolder.text.setText("回答："+map.get("q"+question.getQid()));
+            if(qvalue==null){
+                viewHolder.text.setText("");
+            }else{
+                viewHolder.text.setText("回答："+qvalue);
+            }
             Log.i(TAG," ----getPaper ----Uid="+list.get(i).getQid()+list.get(i).toString());
             return view;
         }
@@ -229,7 +233,7 @@ public class ResultDetailActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         this.finish();
-        overridePendingTransition(R.anim.hold, android.R.anim.fade_out);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
 }

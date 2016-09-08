@@ -8,6 +8,7 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -129,7 +130,19 @@ public class ShowActivity extends AppCompatActivity implements View.OnClickListe
                     showLayout.removeAllViews();
                     rlist.add(result);
                     bar.setVisibility(View.VISIBLE);
-                    textView.setVisibility(View.GONE);
+                    //textView.setVisibility(View.GONE);
+
+                    textView.setText("提交中...");
+                    textView.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                    TextView tv = new TextView(this);
+                    tv.setText("即将提交成功...");
+                    tv.setTextColor(getResources().getColor(R.color.colorPrimary));
+                    tv.setTextSize(25);
+                    tv.setMinLines(5);
+                    tv.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL);
+                    showLayout.addView(tv,params);
+
                     button.setText("正在提交中...");
                     try {
                         Log.i(TAG,"----PostData----ResultList:size="+rlist.size());
