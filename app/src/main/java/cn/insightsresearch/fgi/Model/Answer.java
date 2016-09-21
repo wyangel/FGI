@@ -7,16 +7,16 @@ import java.io.Serializable;
  */
 public class Answer implements Serializable {
     private int id;
-    private int questionid;
+    private int qid;
     private int aid;
     private String atitle;
-    private int toqid;
+    private Logic alogic;
     private int asort;
     private int isshow;
     private int paita;
 
     public String toString() {
-        return "- - Answer:"+id+" | "+questionid+" | "+aid+" | "+atitle+" | "+toqid+" | "+asort+" | "+isshow+" | "+paita;
+        return "- - Answer:"+id+" | "+qid+" | "+aid+" | "+atitle+" | "+asort+" | "+isshow+" | "+paita+" | aLogic:"+alogic.toString();
     }
 
     public int getAid() {
@@ -59,20 +59,12 @@ public class Answer implements Serializable {
         this.isshow = isshow;
     }
 
-    public int getQuestionid() {
-        return questionid;
+    public int getQid() {
+        return qid;
     }
 
-    public void setQuestionid(int questionid) {
-        this.questionid = questionid;
-    }
-
-    public int getToqid() {
-        return toqid;
-    }
-
-    public void setToqid(int toqid) {
-        this.toqid = toqid;
+    public void setQid(int qid) {
+        this.qid = qid;
     }
 
     public int getPaita() {
@@ -81,5 +73,13 @@ public class Answer implements Serializable {
 
     public void setPaita(int paita) {
         this.paita = paita;
+    }
+
+    public Logic getAlogic() {
+        return alogic;
+    }
+
+    public void setAlogic(Logic alogic) {
+        this.alogic = alogic;
     }
 }

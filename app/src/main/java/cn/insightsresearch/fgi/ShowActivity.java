@@ -1,6 +1,8 @@
 package cn.insightsresearch.fgi;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
@@ -21,7 +23,7 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
-import cn.insightsresearch.fgi.Model.BaseEntity;
+import cn.insightsresearch.fgi.Model.Logic;
 import cn.insightsresearch.fgi.Model.Question;
 import cn.insightsresearch.fgi.Model.QuestionEntity;
 import cn.insightsresearch.fgi.common.PaperManager;
@@ -52,10 +54,7 @@ public class ShowActivity extends AppCompatActivity implements View.OnClickListe
     private Paper paper;
     private int now = 0;
     private HashMap<Integer,Integer> map= new HashMap<Integer, Integer>();
-    private Result result = null;
     private ArrayList<Result> rlist = new ArrayList<Result>();
-    private HashMap<Integer,String> hmap = new HashMap<Integer, String>();
-    private ArrayList<String> list = new ArrayList();
     private QuestionUtil qutil = new QuestionUtil().getQuestionUtil();
     private String uid = "";
     private int pid = 0;
@@ -112,57 +111,33 @@ public class ShowActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.button:
                 now = now + 1 ;
                 Result result = qutil.getResult();
-                int toqid = result.getToqid();
-                Log.i(TAG,"----Question Result--toqid--"+toqid);
-                if(toqid>0){
-                    if(map.get(toqid)==null){  now = 999;}else{     now = map.get(toqid);}
-                }
+                rlist.add(result);
+
                 Log.i(TAG,"----Question Result--now--"+now);
                 if(total>now){
-                    progressView.setCurrentCount((now+1)*100/(total+1));
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(view.getWindowToken(),0);
                     Log.i(TAG,"----Question Result----"+result.getQid()+"="+result.getValue());
-                    rlist.add(result);
-                    int qid = nlist.get(now).getQid();
-                    qutil.makeQuestion(this.getBaseContext(), now);
-                }else{
-                    showLayout.removeAllViews();
-                    rlist.add(result);
-                    bar.setVisibility(View.VISIBLE);
-                    //textView.setVisibility(View.GONE);
-
-                    textView.setText("提交中...");
-                    textView.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL);
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    TextView tv = new TextView(this);
-                    tv.setText("即将提交成功...");
-                    tv.setTextColor(getResources().getColor(R.color.colorPrimary));
-                    tv.setTextSize(25);
-                    tv.setMinLines(5);
-                    tv.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL);
-                    showLayout.addView(tv,params);
-
-                    button.setText("正在提交中...");
-                    try {
-                        Log.i(TAG,"----PostData----ResultList:size="+rlist.size());
-                        ResultManager resultManager = new ResultManager(getBaseContext(),pid);
-                        resultManager.openDataBase();
-                        paper.setUdate(DateUtil.getDateTime());
-                        paper.setTotal((paper.getTotal()+1));
-                        paperManager.updatePaperTotal(paper);
-                        long r =  resultManager.insertResultData(rlist,uid,pid+"");
-                        resultManager.closeDataBase();
-                        Log.i(TAG,"----PostData----AddResult:"+r);
-                        Message msg = new Message();
-                        msg.what=2;
-                        mHandler.sendMessage(msg);
-                    } catch (Exception e) {
-                        Message msg = new Message();
-                        msg.what=10;
-                        mHandler.sendMessage(msg);
-                        e.printStackTrace();
+                    ArrayList<Logic> logics = nlist.get(now).getLogics();
+                    if(logics.size()>0){
+                        int toLqid = doLogic(logics,rlist);
+                        int logicnow = 0;
+                        if(toLqid>0) {
+                            if(toLqid==9999){
+                                doSave();
+                            }else {
+                                if (map.get(toLqid) != null) {
+                                    logicnow = map.get(toLqid);
+                                    if (logicnow > now && logicnow < total) now = logicnow;
+                                }
+                                Log.i(TAG, "----Logic--toqid--" + toLqid + ",--Logic Now--" + logicnow);
+                            }
+                        }
                     }
+                    progressView.setCurrentCount((now+1)*100/(total+1));
+                    qutil.makeQuestion(this.getBaseContext(), now,rlist);
+                }else{
+                    doSave();
                 }
                 break;
             default:
@@ -211,15 +186,14 @@ public class ShowActivity extends AppCompatActivity implements View.OnClickListe
             bar.setVisibility(View.GONE);
             switch (msg.what) {
                 case 1:
-                    if(total>now){
-                        int qid = nlist.get(0).getQid();
+                    if(total>now){      //初始化问卷
                         for(int i=0;i<nlist.size();i++) {
                             map.put(nlist.get(i).getQid(), i);
                         }
                         //qutil.setMap(map);
                         qutil.setList(nlist);
-                        qutil.makeQuestion(getBaseContext(),0);
-                      Log.i(TAG, "----new Handler----makeQuestion:qid="+qid);
+                        qutil.makeQuestion(getBaseContext(),0,null);
+                      Log.i(TAG, "----new Handler----makeQuestion:qid="+nlist.get(0).getQid());
                     }else{
                         button.setEnabled(false);
                         Toast.makeText(ShowActivity.this,R.string.papernoanswer, Toast.LENGTH_SHORT).show();
@@ -232,7 +206,6 @@ public class ShowActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     break;
                 case 2:
-                    paperManager.closeDataBase();
                     button.setText(R.string.submitsucess);
                     Toast.makeText(ShowActivity.this,R.string.submitsucess, Toast.LENGTH_SHORT).show();
                     (new Handler()).postDelayed(new Runnable() {
@@ -252,12 +225,86 @@ public class ShowActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
+    private void doSave(){
+        showLayout.removeAllViews();
+        bar.setVisibility(View.VISIBLE);
+
+        textView.setText("提交中...");
+        textView.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        TextView tv = new TextView(this);
+        tv.setText("即将提交成功...");
+        tv.setTextColor(getResources().getColor(R.color.colorPrimary));
+        tv.setTextSize(25);
+        tv.setMinLines(5);
+        tv.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL);
+        showLayout.addView(tv,params);
+
+        button.setText("正在提交中...");
+        try {
+            Log.i(TAG,"----PostData----ResultList:size="+rlist.size());
+            ResultManager resultManager = new ResultManager(getBaseContext(),pid);
+            resultManager.openDataBase();
+            paper.setUdate(DateUtil.getDateTime());
+            paper.setTotal((paper.getTotal()+1));
+            paperManager.updatePaperTotal(paper);
+            long r =  resultManager.insertResultData(rlist,uid,pid+"");
+            resultManager.closeDataBase();
+            Log.i(TAG,"----PostData----AddResult:"+r);
+            Message msg = new Message();
+            msg.what=2;
+            mHandler.sendMessage(msg);
+        } catch (Exception e) {
+            Message msg = new Message();
+            msg.what=10;
+            mHandler.sendMessage(msg);
+            e.printStackTrace();
+        }
+    }
+
+    private int doLogic(ArrayList<Logic> logics,ArrayList<Result> list){
+        int toqid = 0;
+        String value = ",,";
+        for(Result r : list){
+            String[] strr  = r.getValue().split(",");
+            for(int i=0;i<strr.length;i++){
+                value = value + "Q"+ r.getQid() +"-A"+ strr[i] + ",";
+            }
+        }
+        //Log.i(TAG, "----logic--value--"+value);
+        for(Logic logic : logics){
+            Log.i(TAG, "----logic----"+logic.toString());
+            boolean isb = false;
+            if("and".equals(logic.getTag())) isb = true;
+            String[] strl  = logic.getLogicid().split(",");
+            for(int i=0;i<strl.length;i++){
+                if("or".equals(logic.getTag()) && value.indexOf(","+strl[i]+",")>0){  isb = true;break; }
+                if("and".equals(logic.getTag()) && value.indexOf(","+strl[i]+",")<0){  isb = false;break; }
+            }
+            if(logic.isornot()==1){
+                if(isb){    toqid = logic.getToqid();break;   }
+            }else{
+                if(!isb){    toqid = logic.getToqid();break;   }
+            }
+        }
+        return toqid;
+    }
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        finish();
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setTitle("提示：").setMessage("请问您确认要退出回答问卷吗？").setPositiveButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+            }
+        }).setNegativeButton("确认", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                ShowActivity.this.finish();
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            }
+        }).create().show();
     }
 
 }

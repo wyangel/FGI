@@ -12,10 +12,8 @@ public class Result implements Serializable {
     private int qid;
     private String value;
     private String adate;
-    private int toqid;
 
     public Result(){
-
     }
 
     public Result(int qid, String value){
@@ -67,11 +65,4 @@ public class Result implements Serializable {
         this.adate = adate;
     }
 
-    public int getToqid() {
-        return toqid;
-    }
-
-    public void setToqid(int toqid) {
-        this.toqid = toqid;
-    }
 }

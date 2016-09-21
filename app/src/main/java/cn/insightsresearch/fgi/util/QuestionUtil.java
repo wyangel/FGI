@@ -7,6 +7,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Random;
 
 import cn.insightsresearch.fgi.Model.Answer;
+import cn.insightsresearch.fgi.Model.Logic;
 import cn.insightsresearch.fgi.Model.Question;
 import cn.insightsresearch.fgi.Model.Result;
 import cn.insightsresearch.fgi.R;
@@ -95,7 +97,7 @@ public class QuestionUtil {
         this.button = button;
     }
 
-    public void makeQuestion(final Context context, int now){
+    public void makeQuestion(final Context context, int now,ArrayList<Result> rlist){
         showLayout.removeAllViews();
         //final Question question = map.get(qid+"");
         final Question question = list.get(now);
@@ -104,27 +106,27 @@ public class QuestionUtil {
         final int qradom = question.getRadom();
         result = new Result();
         result.setQid(question.getQid());
-        result.setToqid(0);
+        //result.setToqid(0);
         //result.setAdate(DateUtil.getDateTime());
         int cmin = question.getCmin(),cmax=question.getCmax(),atotal=alist.size();
+
         if(cmin<1||cmin>atotal) cmin = 1;
         if(cmax<1||cmax>atotal) cmax = atotal;
         if(cmin>cmax) cmin = 1;
         final int amin = cmin;
         final int amax = cmax;
-
         String title ="Q"+(now+1)+"."+question.getQtitle()+getType(qtype);
-        if(qtype==2) title = title+"(选"+cmin+"-"+cmax+"项)";
+        if(qtype==2&&(cmin>1||cmax<atotal)) title = title+"(选"+cmin+"-"+cmax+"项)";
         textView.setText(title);
 
-        if(qtype<3&&qradom>0) { //随机排序
+        if(qtype<3&&qradom>1) { //随机排序
             final Random random = new Random(System.currentTimeMillis());
             final ArrayList<Answer> klist = new ArrayList<>();
-            int len = alist.size()-qradom;
-            for(int i=len; i<len; i++){
-                Answer ans = alist.get(len);
+            for(int i=qradom; i<atotal; i++){
+                Answer ans = alist.get(qradom);
                 klist.add(ans);
-                alist.remove(len);
+                //Log.i(TAG,"-----qradom----"+ans.getAid());
+                alist.remove(qradom);
             }
 
             Collections.sort(alist, new Comparator<Answer>() {
@@ -155,7 +157,10 @@ public class QuestionUtil {
                     RadioButton rb = new RadioButton(context);
                     rb.setText(answer.getAtitle());
                     rb.setId(answer.getAid());
-                    rb.setTag(answer.getToqid());
+                    if(!doLogic(answer.getAlogic(),rlist)){
+                        rb.setVisibility(View.GONE);
+                    }
+                    //rb.setTag(answer.getToqid());
                     rb.setTextColor(context.getResources().getColor(R.color.colorPrimary));
                     rb.setBackgroundResource(R.drawable.corners);
                     rg.addView(rb,paramsR);
@@ -169,7 +174,6 @@ public class QuestionUtil {
                             if(rbtnid==id){
                                 rbtn.setTextColor(Color.WHITE);
                                 rbtn.setBackgroundResource(R.drawable.corners_checked);
-                                result.setToqid(Integer.parseInt(rbtn.getTag().toString()));
                                 result.setValue(rbtnid+"");
                                 button.setEnabled(true);
                             }else {
@@ -184,14 +188,15 @@ public class QuestionUtil {
                 break;
             case 2:
                 final ArrayList<String> list = new ArrayList<>();
-                final ArrayList<String> listq = new ArrayList<>();
                 final ArrayList<CheckBox> listm = new ArrayList<>();
                 final ArrayList<CheckBox> listn = new ArrayList<>(); //排他list
                 for (final Answer answer : alist) {
                     final CheckBox cb = new CheckBox(context);
                     cb.setText(answer.getAtitle());
                     cb.setId(answer.getAid());
-                    cb.setTag(answer.getToqid());
+                    if(!doLogic(answer.getAlogic(),rlist)){
+                        cb.setVisibility(View.GONE);
+                    }
                     //cb.setPadding(50, 10, 10, 10);
                     cb.setTextColor(Color.BLUE);
                     cb.setBackgroundResource(R.drawable.corners);
@@ -221,19 +226,15 @@ public class QuestionUtil {
                                     }
                                 }
                                 list.add(cbut.getId()+"");
-                                listq.add(cbut.getTag().toString());
                                 cbut.setTextColor(Color.WHITE);
                                 cbut.setBackgroundResource(R.drawable.corners_checked);
                             }
                             else{
                                 list.remove(cbut.getId()+"");
-                                listq.remove(cbut.getTag().toString());
                                 cbut.setTextColor(Color.BLUE);
                                 cbut.setBackgroundResource(R.drawable.corners);
                             }
-                            //Log.i(TAG,"listq:"+formatListq(listq));
                             //Log.i(TAG,"list:"+formatList(list));
-                            result.setToqid(formatListq(listq));
                             result.setValue(formatList(list));
 
                             if(list.size()>amin-1&&list.size()<amax+1){
@@ -298,18 +299,6 @@ public class QuestionUtil {
         }
     }
 
-    public int formatListq(List<String> list) {
-        int toqid=0;
-        for(int i=0 ;i< list.size();i++) {
-           if("0".equals(list.get(i))){
-               list.remove(i);
-           }
-        }
-        //Log.i(TAG,"listq size:"+list.size());
-        if(list.size()>0){     toqid = Integer.parseInt(list.get(0));    }
-        return toqid;
-    }
-
     public String formatList(List<?> list) {
         StringBuilder b = new StringBuilder();
         boolean flag = false;
@@ -340,4 +329,31 @@ public class QuestionUtil {
                 return "（说明）";
         }
     }
+
+    private Boolean doLogic(Logic logic,ArrayList<Result> list){
+        boolean b = false;
+        if(logic.getLogicid()==null||list==null||list.size()==0) return true;
+        String value = ",,";
+        for(Result r : list){
+            String[] strr  = r.getValue().split(",");
+            for(int i=0;i<strr.length;i++){
+                value = value + "Q"+ r.getQid() +"-A"+ strr[i] + ",";
+            }
+        }
+        Log.i(TAG, "--Answer--logic----"+logic.toString());
+        boolean isb = false;
+        if("and".equals(logic.getTag())) isb = true;
+        String[] strl  = logic.getLogicid().split(",");
+        for(int i=0;i<strl.length;i++){
+            if("or".equals(logic.getTag()) && value.indexOf(","+strl[i]+",")>0){  isb = true;break; }
+            if("and".equals(logic.getTag()) && value.indexOf(","+strl[i]+",")<0){  isb = false;break; }
+        }
+        if(logic.isornot()==1){
+            if(isb){    b = true;   }
+        }else{
+            if(!isb){    b = true;    }
+        }
+        return b;
+    }
+
 }

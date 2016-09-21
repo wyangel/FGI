@@ -93,7 +93,7 @@ public class HomeFragment extends Fragment {
             public void onClick(View view) {
                 button.setText("已经更新");
                 button.setEnabled(false);
-                Toast.makeText(mActivity,"请先连接网络再更新调查问卷数据！", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mActivity,"清空问卷回答数据表！", Toast.LENGTH_SHORT).show();
             }
         });
         qingkong =(Button)mParent.findViewById(R.id.qingkong);
@@ -123,7 +123,13 @@ public class HomeFragment extends Fragment {
 
     public void checkUserPaper(final int uid,boolean b){
         paperManager.openDataBase();
-        if(b)   paperManager.deleteAllPapers();
+        if(b) {
+            paperManager.deleteAllPapers();
+            ResultManager resultManager = new ResultManager(mActivity,0);
+            resultManager.openDataBase();
+            resultManager.deleteAllTables();
+            resultManager.closeDataBase();
+        }
         if(NetworkUtil.isConnected(getContext())){
             new Thread(new Runnable() {
                 @Override

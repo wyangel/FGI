@@ -90,6 +90,7 @@ public class ResultActivity extends AppCompatActivity {
                 Intent intent = new Intent(ResultActivity.this, ResultDetailActivity.class);
                 intent.putExtra("RESULT", result);
                 startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 Log.i(TAG," ----Result onItemClick ----Uid="+result.getUid());
             }
         });

@@ -79,6 +79,18 @@ public class ResultManager {
         mSQLiteDatabase = mDatabaseHelper.getWritableDatabase();
     }
 
+    public void deleteAllTables() {
+        Cursor cursor = mSQLiteDatabase.rawQuery("select name from sqlite_master where type='table' order by name",null);
+        while(cursor.moveToNext()){
+            //遍历出表名
+            String name = cursor.getString(0);
+            if("result_".equals(name.substring(0,7))) {
+                Log.i("System.out", name);
+                mSQLiteDatabase.execSQL("DROP TABLE IF EXISTS " + name + ";");
+            }
+        }
+    }
+
     public void rebuildTable(Paper paper) throws SQLException {
         Gson gson = new Gson();
         TABLEID = "_" + paper.getPid();
@@ -193,4 +205,7 @@ public class ResultManager {
         return istotal;
     }
 
+    public static void setTABLEID(String TABLEID) {
+        ResultManager.TABLEID = TABLEID;
+    }
 }

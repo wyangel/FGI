@@ -160,12 +160,16 @@ public class ResultDetailActivity extends AppCompatActivity {
                 }
 
             }else{
-                content = qvalue;
+                if(qvalue==null){
+                    content="";
+                }else{
+                    content = "<font color=red><b>"+qvalue+"</b></font>";
+                }
                 if(qtype==10){
                     content = question.getQtitle();
                 }
             }
-            if(content==null){  content="";}
+
             viewHolder.title.setText(title);
             viewHolder.content.setText(Html.fromHtml(content));
             viewHolder.id.setText(question.getId()+"");
@@ -175,7 +179,7 @@ public class ResultDetailActivity extends AppCompatActivity {
             }else{
                 viewHolder.text.setText("回答："+qvalue);
             }
-            Log.i(TAG," ----getPaper ----Uid="+list.get(i).getQid()+list.get(i).toString());
+            Log.i(TAG," ----getPaper ----qid="+list.get(i).getQid()+list.get(i).toString());
             return view;
         }
 
@@ -196,10 +200,14 @@ public class ResultDetailActivity extends AppCompatActivity {
     }
 
     public String getMinMax(int cmin,int cmax,int atotal) {
-        if (cmin < 1 || cmin > atotal) cmin = 1;
-        if (cmax < 1 || cmax > atotal) cmax = atotal;
-        if (cmin > cmax) cmin = 1;
-        return "(选"+cmin+"-"+cmax+"项)";
+        if(cmin==0 && cmax==0){
+            return "";
+        }else {
+            if (cmin < 1 || cmin > atotal) cmin = 1;
+            if (cmax < 1 || cmax > atotal) cmax = atotal;
+            if (cmin > cmax) cmin = 1;
+            return "(选" + cmin + "-" + cmax + "项)";
+        }
     }
 
     public String getType(int i){
